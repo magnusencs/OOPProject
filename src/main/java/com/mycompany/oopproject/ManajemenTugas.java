@@ -5,11 +5,14 @@
 package com.mycompany.oopproject;
 import java.util.Vector; 
 import java.time.LocalDate;
+import java.util.Scanner;
+
 /**
  *
  * @author msi39
- */
+ */ 
 public class ManajemenTugas {
+    Scanner scan = new Scanner(System.in);
     private Vector<Tugas> listTugas;
     private Vector<Tugas> tugasTerlewat;
     public ManajemenTugas(){
@@ -20,11 +23,18 @@ public class ManajemenTugas {
     public void tambahTugas(Tugas tugas) {
         listTugas.add(tugas);
     }
+    
+    Vector<Tugas> getListTugas(){
+        return listTugas;
+    }
+    
 
     public void tampilkanTugas() {
+        int count = 1;
         for (Tugas t : listTugas) {
-            t.tampilkanInfo();
-            System.out.println("--------------------");
+            System.out.println(count); t.tampilkanInfo();
+            System.out.println( "--------------------");
+            count += 1;
         }
     }
     
@@ -32,7 +42,7 @@ public class ManajemenTugas {
         LocalDate hariIni = LocalDate.now();
         tugasTerlewat.clear();
         for (Tugas t: listTugas ) {
-            if (t.getDeadline().isBefore(hariIni ) && t.getStatus() == false)
+            if (t.getDeadline().isBefore(hariIni ) && !t.getStatus())
             {
                 tugasTerlewat.add(t);
             }
@@ -45,4 +55,32 @@ public class ManajemenTugas {
             System.out.println("Tugas terlewat: ");
         }
     }
+    
+    public boolean ubahStatusTugas() {
+        if (listTugas.isEmpty()) {
+           System.out.println("tidak ada tugas yang disimpan");
+           return false;
+        }
+        else {
+           
+           int pilihNomor;
+           do {
+            tampilkanTugas();
+            System.out.println("mau tugas yang nomor berapa? ");
+            pilihNomor = scan.nextInt();
+            scan.nextLine();
+            if (pilihNomor<1 || pilihNomor> listTugas.size()) {
+                System.out.println("angka tidak valid, coba lagi.");
+            }
+           } while (pilihNomor > listTugas.size() || pilihNomor < 1);
+           System.out.println("status sudah? (y/n)");
+           char status = scan.next().charAt(0);
+           boolean s = (status == 'y'); 
+           listTugas.get(pilihNomor-1).setStatus(s);
+           return true;
+        }
+    }
+    
+    
+   
 }
