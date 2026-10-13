@@ -9,16 +9,17 @@ import java.time.LocalDate;
  *
  * @author msi39
  */
-public class Tugas {
-    //enkapsusi
+public abstract class Tugas implements DapatDitandai{
+    //enkapsulasi
     private String namaTugas;
     private boolean statusSudah = false;
     private LocalDate deadline;
     public Tugas(String namaTugas, LocalDate deadline) {
+        
         this.deadline = deadline;
         this.namaTugas = namaTugas;
     }
-    public void setTrue(boolean s) {
+    public void setStatus(boolean s) {
         this.statusSudah = s;
     }
     public String getNama(){
@@ -27,14 +28,23 @@ public class Tugas {
     public boolean getStatus(){
         return statusSudah;
     }
-    public LocalDate     getDeadline() {
+    public LocalDate getDeadline() {
         return this.deadline;
     }
-    public void tampilkanInfo() {
-    System.out.println("Nama     : " + namaTugas);
-    System.out.println("Deadline : " + deadline);
-    System.out.println("Status   : " + (statusSudah ? "Selesai" : "Belum selesai"));
+    public void setNama(String namaTugas) {
+    if (namaTugas == null || namaTugas.isBlank()) {
+        return;
+    }
+    this.namaTugas = namaTugas;
 }
+
+public void setDeadline(LocalDate deadline) {
+    if (deadline == null) {
+        return;
+    }
+    this.deadline = deadline;
+}
+public abstract void tampilkanInfo();
     
 }
 
