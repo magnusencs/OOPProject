@@ -6,6 +6,9 @@ package com.mycompany.oopproject;
 import java.util.Vector; 
 import java.time.LocalDate;
 import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -14,15 +17,34 @@ import java.util.Scanner;
 public class ManajemenTugas {
     Scanner scan = new Scanner(System.in);
     private Vector<Tugas> listTugas;
-    private Vector<Tugas> tugasTerlewat;
+    private ArrayList<Tugas> tugasTerlewat;
     public ManajemenTugas(){
         listTugas = new Vector<>();
-        tugasTerlewat = new Vector<>();
+        tugasTerlewat = new ArrayList<>();
     }
+    public void muatTugasDariDatabase() {
+
+    listTugas = DatabaseManager.loadTugas();
+
+}
     
     public void tambahTugas(Tugas tugas) {
-        listTugas.add(tugas);
+
+    if (tugas == null) {
+        throw new IllegalArgumentException("Tugas tidak boleh kosong!");
     }
+
+    if (tugas.getNama() == null || tugas.getNama().isBlank()) {
+        throw new IllegalArgumentException("Nama tugas tidak boleh kosong!");
+    }
+
+    if (tugas.getDeadline() == null) {
+        throw new IllegalArgumentException("Deadline tidak boleh kosong!");
+    }
+
+    listTugas.add(tugas);
+    DatabaseManager.insertTugas(tugas);
+}
     
     Vector<Tugas> getListTugas(){
         return listTugas;
@@ -76,11 +98,49 @@ public class ManajemenTugas {
            System.out.println("status sudah? (y/n)");
            char status = scan.next().charAt(0);
            boolean s = (status == 'y'); 
-           listTugas.get(pilihNomor-1).setStatus(s);
+           Tugas tugasDipilih = listTugas.get(pilihNomor - 1);
+
+           tugasDipilih.setStatus(s);
+
+           DatabaseManager.updateStatus(tugasDipilih);
+
            return true;
         }
     }
     
-    
+    public void rekapTugasPerMataKuliah() {
+
+    HashMap<String, Integer> rekap = new HashMap<>();
+
+    for (Tugas t : listTugas) {
+
+        if (t instanceof TugasKuliah) {
+
+            TugasKuliah tk = (TugasKuliah) t;
+
+            String mataKuliah = tk.getMataKuliah();
+
+            rekap.put(
+                mataKuliah,
+                rekap.getOrDefault(mataKuliah, 0) + 1
+            );
+        }
+    }
+
+    System.out.println("\n===== REKAP TUGAS KULIAH =====");
+
+    if (rekap.isEmpty()) {
+        System.out.println("Belum ada tugas kuliah.");
+    } else {
+        for (Map.Entry<String, Integer> entry : rekap.entrySet()) {
+
+            System.out.println(
+                entry.getKey() + " : " + entry.getValue() + " tugas"
+            );
+        }
+    }
+
+    System.out.println("==============================");
+}
    
 }
