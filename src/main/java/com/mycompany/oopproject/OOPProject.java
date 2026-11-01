@@ -5,9 +5,12 @@
 package com.mycompany.oopproject;
 
 import java.util.Scanner;
-import java.util.Vector;
+//import java.util.Vector;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 
 /**
@@ -24,18 +27,55 @@ public class OOPProject {
     }
     
     public static void main(String[] args) {
-    Vector <Tugas> listTugas = new Vector <>();
+   DatabaseManager.createTable();
+
+    System.out.println(
+        "Database location: "
+        + new java.io.File("taskflow.db").getAbsolutePath()
+    );
+        
+   Connection conn = null;
+
+    try {
+        conn = DatabaseManager.connect();
+        System.out.println("Database berhasil terhubung.");
+
+    } catch (SQLException e) {
+        System.out.println("Database gagal terhubung.");
+        e.printStackTrace();
+
+    } finally {
+
+        try {
+            if (conn != null) {
+                conn.close();
+                System.out.println("Koneksi database ditutup.");
+            }
+        } catch (SQLException e) {
+            System.out.println("Gagal menutup koneksi database.");
+        }
+    }
+        
+    ManajemenTugas manager = new ManajemenTugas();
+    manager.muatTugasDariDatabase();
+   // Vector <Tugas> listTugas = new Vector <>();
     int inp;
 
     Scanner scan = new Scanner(System.in);
 
     while (true) {
         sout("TASKFLOW");
-        sout("1. tambah tugas");
-        sout("2. tunjukkan tugas");
-        sout("3. Ubah status tugas");
-        sout("4. tunjukkan tugas yang terlewat");
-        sout("5. exit");
+        String[] menu = {
+        "Tambah tugas",
+        "Tampilkan tugas",
+        "Ubah status tugas",
+        "Tampilkan tugas terlewat",
+        "Rekap Tugas Mata Kuliah",
+        "Exit"
+        };
+        for (int i = 0; i < menu.length; i++) {
+        System.out.println((i + 1) + ". " + menu[i]);
+        }
 
         inp = scan.nextInt();
         scan.nextLine();
@@ -44,65 +84,76 @@ public class OOPProject {
         // sout(inp);
         switch (inp) {
             case 1:
-                // tambah tugas
-                //String nama;
-                sout("nama tugas: ");
-                String nama = scan.nextLine();
+            LocalDate deadline = null;
+            DateTimeFormatter format = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+            //boolean correct = false;
+            sout("nama tugas: ");
+            String nama = scan.nextLine();
+            while (true) {
                 System.out.print("Deadline (dd-MM-yyyy): ");
                 String inputDeadline = scan.nextLine();
-                DateTimeFormatter format = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-                LocalDate deadline = LocalDate.parse(inputDeadline, format);
-
-                System.out.println("1. Kuliah");
-                System.out.println("2. Pribadi");
-                System.out.print("Jenis tugas: ");
-                int jenis = scan.nextInt();
-                scan.nextLine();
-
-                Tugas tugas = null;
-
-                if (jenis == 1) {
-                    System.out.print("Mata kuliah: ");
-                    String mataKuliah = scan.nextLine();
-                    tugas = new TugasKuliah(nama, deadline, mataKuliah);
-
-                } else if (jenis == 2) {
-                    System.out.print("Kategori: ");
-                    nama = scan.nextLine();
-                    tugas = new TugasPribadi(nama, deadline);
-                }
-
-                if (tugas != null) {
-                    listTugas.add(tugas);
-                }
-
-                break;
 
                 
-               
+                try {
+                    deadline = LocalDate.parse(inputDeadline, format);
+                    break;
+                } catch (DateTimeParseException e) {
+                    System.out.println("Format deadline tidak valid. Gunakan dd-MM-yyyy.");
+                   
+                } 
+            }
+
+            System.out.println("1. Kuliah");
+            System.out.println("2. Pribadi");
+            System.out.print("Jenis tugas: ");
+            int jenis = scan.nextInt();
+            scan.nextLine();
+
+            Tugas tugas = null;
+
+            if (jenis == 1) {
+                System.out.print("Mata kuliah: ");
+                String mataKuliah = scan.nextLine();
+                tugas = new TugasKuliah(nama, deadline, mataKuliah);
+
+            } else if (jenis == 2) {
+                System.out.print("kerjaan: ");
+                nama = scan.nextLine();
+                tugas = new TugasPribadi(nama, deadline);
+            }
+
+           try {
+                manager.tambahTugas(tugas);
+                System.out.println("Tugas berhasil ditambahkan!");
+
+            } catch (IllegalArgumentException e) {
+                System.out.println("Gagal menambahkan tugas: " + e.getMessage());
+            }
+
+            break;
+
+
+
 
             case 2:
                 // tampilkan tugas
-                 if (listTugas.isEmpty()) {
-                    System.out.println("Belum ada tugas.");
-                } else {
-                    for ( Tugas t : listTugas) {
-                        t.tampilkanInfo();
-                        System.out.println("--------------------");
-                    }
-                }
+                 manager.tampilkanTugas();
                 break;
-              
-
             case 3:
+                manager.ubahStatusTugas();
+                manager.cekTugasTerlewat();
                 // ubah status
+                                 
                 break;
 
             case 4:
+                manager.tampilkanTugasTerlewat();
                 // tampilkan tugas terlewat
                 break;
-
-            case 5:
+            case 5: 
+                manager.rekapTugasPerMataKuliah();
+                break;
+            case 6:
                 sout("Program selesai.");
                 scan.close();
                 return;
